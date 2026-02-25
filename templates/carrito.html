@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Carrito</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="fw-bold mb-0">🛒 Carrito</h1>
+      <a href="{{ url_for('home') }}" class="btn btn-primary">Volver</a>
+    </div>
+
+    {% if productos and productos|length > 0 %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <ul class="list-group">
+            {% for p in productos %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                  {% if p.imagen %}
+                    <img src="{{ url_for('static', filename='uploads/' + p.imagen) }}"
+                         alt="img"
+                         style="width:60px;height:60px;object-fit:cover;border-radius:10px;">
+                  {% else %}
+                    <div class="bg-secondary-subtle d-flex align-items-center justify-content-center"
+                         style="width:60px;height:60px;border-radius:10px;">
+                      <span class="text-muted small">Sin</span>
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <div class="fw-semibold">{{ p.nombre }}</div>
+                    <div class="text-success">${{ "%.2f"|format(p.precio) }}</div>
+                  </div>
+                </div>
+
+                <a class="btn btn-outline-danger btn-sm"
+                   href="{{ url_for('quitar_carrito', id=p.id) }}">
+                  Quitar
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+          Total: <span class="text-success">${{ "%.2f"|format(total) }}</span>
+        </h4>
+
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('vaciar_carrito') }}" class="btn btn-secondary"
+             onclick="return confirm('¿Vaciar el carrito?');">
+            Vaciar carrito
+          </a>
+          <button class="btn btn-success" onclick="alert('Compra simulada ✅');">
+            Comprar
+          </button>
+        </div>
+      </div>
+
+    {% else %}
+      <div class="alert alert-info">
+        No hay productos en el carrito.
+      </div>
+    {% endif %}
+
+  </div>
+</body>
+</html>

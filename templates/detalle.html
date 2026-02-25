@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ producto['nombre'] }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #eaeded; }
+    .navbar { background-color: #131921; }
+    .navbar-brand { font-weight: bold; font-size: 22px; }
+    .product-img {
+      width: 100%;
+      max-height: 450px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .price { color: #B12704; font-size: 28px; font-weight: bold; }
+    .amazon-btn {
+      background-color: #ffd814;
+      border: none;
+      color: #000;
+      font-weight: 500;
+      font-size: 16px;
+      padding: 10px;
+    }
+    .amazon-btn:hover { background-color: #f7ca00; }
+    .buy-btn {
+      background-color: #FFA41C;
+      border: none;
+      color: #000;
+      font-weight: 500;
+      font-size: 16px;
+      padding: 10px;
+    }
+    .buy-btn:hover { background-color: #FF8F00; }
+    .detail-box {
+      background: #fff;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark px-4">
+  <div class="container-fluid">
+    <a class="navbar-brand text-white" href="/">🛒 MiTienda</a>
+    <a href="/carrito" class="btn btn-warning">
+      Carrito 🛍 <span class="badge bg-dark">{{ carrito_count }}</span>
+    </a>
+  </div>
+</nav>
+
+<div class="container mt-4">
+  <a href="/" class="btn btn-outline-secondary mb-3">← Volver a la tienda</a>
+  <div class="row g-4">
+    <!-- IMAGEN -->
+    <div class="col-md-6">
+      {% if producto['imagen'] %}
+      <img src="{{ url_for('static', filename='uploads/' + producto['imagen']) }}"
+           class="product-img">
+      {% endif %}
+    </div>
+    <!-- DETALLE -->
+    <div class="col-md-6">
+      <div class="detail-box">
+        <h2 class="fw-bold mb-3">{{ producto['nombre'] }}</h2>
+        <hr>
+        <div class="price mb-3">${{ "%.2f"|format(producto['precio']) }}</div>
+        <p class="text-muted mb-4">
+          {{ producto['descripcion'] if producto['descripcion'] else 'Sin descripción disponible.' }}
+        </p>
+        <div class="d-grid gap-2">
+          <a href="/agregar_carrito/{{ producto['id'] }}" class="btn amazon-btn">
+            🛒 Agregar al carrito
+          </a>
+          <a href="/" class="btn buy-btn">
+            ⚡ Seguir comprando
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
