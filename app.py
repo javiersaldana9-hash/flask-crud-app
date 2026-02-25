@@ -1,16 +1,22 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import sqlite3
 import os
+import cloudinary
+import cloudinary.uploader
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# 🔐 Necesario para usar session (carrito)
 app.secret_key = "cambia_esta_clave_por_algo_tuyo"
 
 DATABASE = "tienda.db"
-UPLOAD_FOLDER = "static/uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Configuracion Cloudinary
+cloudinary.config(
+    cloud_name="dbyqlyzkn",
+    api_key="323887487553112",
+    api_secret=os.environ.get("CLOUDINARY_SECRET")
+)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 
@@ -26,8 +32,6 @@ def get_db():
 
 
 def init_db():
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-
     conn = get_db()
     conn.execute("""
         CREATE TABLE IF NOT EXISTS productos (
@@ -38,13 +42,11 @@ def init_db():
             descripcion TEXT
         )
     """)
-    # Agrega la columna descripcion si ya existe la tabla sin ella
     try:
         conn.execute("ALTER TABLE productos ADD COLUMN descripcion TEXT")
         conn.commit()
     except:
         pass
-
     conn.commit()
     conn.close()
 
@@ -58,12 +60,11 @@ def home():
     conn = get_db()
     productos = conn.execute("SELECT * FROM productos ORDER BY id DESC").fetchall()
     conn.close()
-
     carrito_count = len(session.get("carrito", []))
     return render_template("index.html", productos=productos, carrito_count=carrito_count)
 
 
-# ➕ CREAR PRODUCTO (con imagen y descripcion)
+# ➕ CREAR PRODUCTO
 @app.route("/crear", methods=["POST"])
 def crear():
     nombre = request.form.get("nombre", "").strip()
@@ -71,27 +72,16 @@ def crear():
     descripcion = request.form.get("descripcion", "").strip()
 
     imagen = request.files.get("imagen")
-    filename = None
+    imagen_url = None
 
-    if imagen and imagen.filename:
-        if allowed_file(imagen.filename):
-            filename = secure_filename(imagen.filename)
-
-            base, ext = os.path.splitext(filename)
-            contador = 1
-            ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-
-            while os.path.exists(ruta):
-                filename = f"{base}_{contador}{ext}"
-                ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-                contador += 1
-
-            imagen.save(ruta)
+    if imagen and imagen.filename and allowed_file(imagen.filename):
+        resultado = cloudinary.uploader.upload(imagen)
+        imagen_url = resultado["secure_url"]
 
     conn = get_db()
     conn.execute(
         "INSERT INTO productos (nombre, precio, imagen, descripcion) VALUES (?, ?, ?, ?)",
-        (nombre, float(precio), filename, descripcion)
+        (nombre, float(precio), imagen_url, descripcion)
     )
     conn.commit()
     conn.close()
@@ -103,17 +93,9 @@ def crear():
 @app.route("/eliminar/<int:id>")
 def eliminar(id):
     conn = get_db()
-
-    producto = conn.execute("SELECT imagen FROM productos WHERE id = ?", (id,)).fetchone()
-    if producto and producto["imagen"]:
-        ruta = os.path.join(app.config["UPLOAD_FOLDER"], producto["imagen"])
-        if os.path.exists(ruta):
-            os.remove(ruta)
-
     conn.execute("DELETE FROM productos WHERE id = ?", (id,))
     conn.commit()
     conn.close()
-
     return redirect(url_for("home"))
 
 
@@ -123,7 +105,6 @@ def detalle_producto(id):
     conn = get_db()
     producto = conn.execute("SELECT * FROM productos WHERE id = ?", (id,)).fetchone()
     conn.close()
-
     carrito_count = len(session.get("carrito", []))
     return render_template("detalle.html", producto=producto, carrito_count=carrito_count)
 
@@ -144,17 +125,14 @@ def agregar_carrito(id):
 @app.route("/carrito")
 def ver_carrito():
     carrito_ids = session.get("carrito", [])
-
     conn = get_db()
     productos = []
     total = 0.0
-
     for pid in carrito_ids:
         p = conn.execute("SELECT * FROM productos WHERE id = ?", (pid,)).fetchone()
         if p:
             productos.append(p)
             total += float(p["precio"])
-
     conn.close()
     return render_template("carrito.html", productos=productos, total=total)
 
