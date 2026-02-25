@@ -37,7 +37,7 @@
 <body>
 <nav class="navbar navbar-dark px-4">
   <div class="container-fluid">
-    <span class="navbar-brand text-white">🛒 TIENDA DE ICOMPUJOB</span>
+    <span class="navbar-brand text-white">🛒 MiTienda</span>
     <a href="/carrito" class="btn btn-warning">
       Carrito 🛍 <span class="badge bg-dark">{{ carrito_count }}</span>
     </a>
@@ -72,8 +72,7 @@
       <div class="card product-card shadow-sm h-100">
         {% if producto['imagen'] %}
         <a href="/producto/{{ producto['id'] }}">
-          <img src="{{ url_for('static', filename='uploads/' + producto['imagen']) }}"
-               class="product-img card-img-top">
+          <img src="{{ producto['imagen'] }}" class="product-img card-img-top">
         </a>
         {% endif %}
         <div class="card-body text-center">

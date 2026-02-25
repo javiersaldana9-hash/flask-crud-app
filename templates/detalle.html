@@ -59,8 +59,7 @@
     <!-- IMAGEN -->
     <div class="col-md-6">
       {% if producto['imagen'] %}
-      <img src="{{ url_for('static', filename='uploads/' + producto['imagen']) }}"
-           class="product-img">
+      <img src="{{ producto['imagen'] }}" class="product-img">
       {% endif %}
     </div>
     <!-- DETALLE -->
